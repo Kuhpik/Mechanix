@@ -13,7 +13,7 @@ public class Unit
     public bool IsDead => Health <= 0;
 
     private readonly int damage;
-    private readonly Spell spell;
+    private readonly Ability spell;
     private readonly float moveSpeed = 1;
     private readonly float attackTime = 0.1f;
     private readonly float attackRange = 0.5f;
@@ -23,7 +23,7 @@ public class Unit
     private float attackTimer;
     private bool hasAttacked;
 
-    public Unit(int damage, int maxHealth, Spell spell)
+    public Unit(int damage, int maxHealth, Ability spell)
     {
         this.spell = spell;
         this.damage = damage;
@@ -95,7 +95,7 @@ public class Unit
         }
 
         if (spell.CanCast)
-            spell.Use();
+            spell.Cast();
         else
             Target.GetDamage(damage);
     }
