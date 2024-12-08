@@ -4,6 +4,7 @@ using UnityEngine;
 public class Unit
 {
     public readonly int MaxHealth;
+    public readonly int Damage;
 
     public Vector2 Position { get; private set; }
     public EUnitState State { get; private set; }
@@ -12,48 +13,51 @@ public class Unit
     public Team Team { get; private set; }
     public bool IsDead => Health <= 0;
 
-    private readonly int damage;
-    private readonly Ability spell;
+    private readonly Ability[] abilities;
     private readonly float moveSpeed = 1;
-    private readonly float attackTime = 0.1f;
-    private readonly float attackRange = 0.5f;
-    private readonly float delayBetweenAttacks = 0.5f;
 
-    private float attackDelayTimer;
-    private float attackTimer;
-    private bool hasAttacked;
-
-    public Unit(int damage, int maxHealth, Ability spell)
+    public Unit(int damage, int maxHealth, params Ability[] abilities)
     {
-        this.spell = spell;
-        this.damage = damage;
+        this.abilities = abilities;
+
+        Damage = damage;
         Health = maxHealth;
         MaxHealth = maxHealth;
-
-        ResetAttackTimer();
-        ResetRestTimer();
     }
 
     public void Update(float deltaTime)
     {
-        spell.Update(deltaTime);
+        foreach (var ability in abilities)
+        {
+            ability.Update(deltaTime);
+        }
 
         if (Target == null)
+        {
+            State = EUnitState.Idle;
             return;
+        }
 
-        if (!IsCloseToTarget())
+        if (IsPerformingAttack())
+        {
+            State = EUnitState.Attack;
+            return;
+        }
+
+        if (IsHaveAbilityToCast(out var abilityToCast))
+        {
+            abilityToCast.Cast();
+            return;
+        }
+
+        if (!IsTargetInRange())
         {
             MoveToTarget(deltaTime);
+            State = EUnitState.Move;
             return;
         }
 
-        if (!hasAttacked)
-        {
-            PerformAttack(deltaTime);
-            return;
-        }
-
-        RestAfterAttack(deltaTime);
+        State = EUnitState.Idle;
     }
 
     public void SetTarget(Unit target)
@@ -71,54 +75,53 @@ public class Unit
         Health = Mathf.Clamp(Health - damage, 0, MaxHealth);
     }
 
-    private bool IsCloseToTarget()
+    private bool IsTargetInRange()
     {
-        return Vector2.Distance(Position, Target.Position) <= attackRange;
+        var distance = Vector2.Distance(Target.Position, Position);
+        // TODO: Optimize with Melee \ Range definitions of ability range.
+        // For ex. if every spell is ranged we no longer have to perform this check.
+
+        foreach (var ability in abilities)
+        {
+            if (distance > ability.Range)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool IsPerformingAttack()
+    {
+        foreach (var ability in abilities)
+        {
+            if (ability.IsCasting)
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsHaveAbilityToCast(out Ability abilityToCast)
+    {
+        abilityToCast = null;
+
+        foreach (var ability in abilities)
+        {
+            if (ability.CanCast)
+            {
+                abilityToCast = ability;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void MoveToTarget(float deltaTime)
     {
-        State = EUnitState.Move;
         var moveDirection = Target.Position - Position;
         Position += moveDirection.normalized * (moveSpeed * deltaTime);
-    }
-
-    private void PerformAttack(float deltaTime)
-    {
-        State = EUnitState.Attack;
-        attackTimer -= deltaTime;
-
-        if (attackTimer <= 0)
-        {
-            hasAttacked = true;
-            ResetAttackTimer();
-        }
-
-        if (spell.CanCast)
-            spell.Cast();
-        else
-            Target.GetDamage(damage);
-    }
-
-    private void RestAfterAttack(float deltaTime)
-    {
-        State = EUnitState.Idle;
-        attackDelayTimer -= deltaTime;
-
-        if (attackDelayTimer <= 0)
-        {
-            hasAttacked = false;
-            ResetRestTimer();
-        }
-    }
-
-    private void ResetAttackTimer()
-    {
-        attackTimer = attackTime;
-    }
-
-    private void ResetRestTimer()
-    {
-        attackDelayTimer = delayBetweenAttacks;
     }
 }
