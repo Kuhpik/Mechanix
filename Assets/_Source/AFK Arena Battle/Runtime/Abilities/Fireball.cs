@@ -5,7 +5,7 @@ public class Fireball : Ability
     public override float Cooldown => 5;
     public override float Range => float.MaxValue;
 
-    protected override void CastInternal()
+    protected override void CastInternal(Unit caster)
     {
         // Select enemy with most health
         // Create fireball

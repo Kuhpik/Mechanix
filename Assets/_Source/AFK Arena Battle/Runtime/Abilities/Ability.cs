@@ -28,14 +28,14 @@ public abstract class Ability
         UpdateInternal(deltaTime);
     }
 
-    public void Cast()
+    public void Cast(Unit caster)
     {
         IsCasting = true;
-        CastInternal();
+        CastInternal(caster);
         ResetTimers();
     }
 
-    protected abstract void CastInternal();
+    protected abstract void CastInternal(Unit caster);
 
     /// <summary>
     /// For cases such as projectile fly animation

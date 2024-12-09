@@ -5,8 +5,11 @@ public class MeleeAttack : Ability
     public override float Cooldown => 1;
     public override float Range => 1;
 
-    protected override void CastInternal()
+    protected override void CastInternal(Unit caster)
     {
-        // Hit unit's target
+        var damage = caster.Damage;
+        var target = caster.Target;
+
+        target.ApplyDamage(caster, damage);
     }
 }

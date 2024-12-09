@@ -2,5 +2,6 @@ public enum EUnitState
 {
     Idle = 0,
     Move = 10,
-    Attack = 20
+    Attack = 20,
+    Dead = 999
 }

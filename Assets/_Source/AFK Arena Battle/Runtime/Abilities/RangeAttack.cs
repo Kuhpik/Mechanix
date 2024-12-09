@@ -5,8 +5,11 @@ public class RangeAttack : Ability
     public override float Cooldown => 1;
     public override float Range => float.MaxValue;
 
-    protected override void CastInternal()
+    protected override void CastInternal(Unit caster)
     {
-        // Hit unit's target
+        var damage = caster.Damage;
+        var target = caster.Target;
+
+        target.ApplyDamage(caster, damage);
     }
 }

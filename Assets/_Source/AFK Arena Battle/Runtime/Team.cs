@@ -21,6 +21,17 @@ public class Team
         return membersMap.Contains(unit);
     }
 
+    public bool IsDefeated()
+    {
+        foreach (var unit in members)
+        {
+            if (!unit.IsDead)
+                return false;
+        }
+
+        return true;
+    }
+
     public IEnumerable<Unit> GetMembers()
     {
         return members;
