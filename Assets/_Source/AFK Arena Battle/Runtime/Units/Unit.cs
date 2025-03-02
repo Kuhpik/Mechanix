@@ -1,14 +1,26 @@
 using System;
 using UnityEngine;
 
+public interface IUnit
+{ 
+    float MoveSpeed { get; set; }
+    Vector2 Position { get; set; }
+    Vector2 MoveDirection { get; set; }
+    void Update(float deltaTime);
+    Vector2 GetMoveDistance(float deltaTime);
+}
+
 // TODO: Separate with FSM
-public class Unit
+public class Unit : IUnit
 {
     public readonly int MaxHealth;
     public readonly int Damage;
     public readonly string Name;
 
-    public Vector2 Position { get; private set; }
+    public float MoveSpeed { get; set; }
+    public Vector2 Position { get; set; }
+    public Vector2 MoveDirection { get; set; }
+
     public EUnitState State { get; private set; }
     public Unit Target { get; private set; }
     public int Health { get; private set; }
@@ -21,7 +33,6 @@ public class Unit
     public event Action<Unit, Unit, int> OnDamaged;
 
     private readonly Ability[] abilities;
-    private readonly float moveSpeed = 1;
 
     public Unit(string name, int damage, int maxHealth, params Ability[] abilities)
     {
@@ -33,7 +44,7 @@ public class Unit
         MaxHealth = maxHealth;
     }
 
-    public void Update(float deltaTime)
+    public virtual void Update(float deltaTime)
     {
         if (IsDead)
         {
@@ -66,7 +77,8 @@ public class Unit
 
         if (!IsTargetInRange())
         {
-            MoveToTarget(deltaTime);
+            MoveDirection = (Target.Position - Position).normalized;
+            Move(deltaTime);
             State = EUnitState.Move;
             return;
         }
@@ -139,9 +151,13 @@ public class Unit
         return false;
     }
 
-    private void MoveToTarget(float deltaTime)
+    public Vector2 GetMoveDistance(float deltaTime)
     {
-        var moveDirection = Target.Position - Position;
-        Position += moveDirection.normalized * (moveSpeed * deltaTime);
+        return MoveDirection * (MoveSpeed * deltaTime);
+    }
+
+    protected void Move(float deltaTime)
+    {
+        Position += GetMoveDistance(deltaTime);
     }
 }
