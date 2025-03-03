@@ -1,23 +1,27 @@
 using UnityEngine;
 using NUnit.Framework;
+using System;
 
 // Documentation:
 // Spell creates Tornado that
 // - Slows characters affected by it for X%
 // - Also pulling them to its center with speed of N
-// ...
-// Spell tests is more like integration tests
-// ...
-// TODO: Maybe it's all stupid and we need to create just 2 effects. Pull and Slow.
 public class TornadoSpellTest
 {
+    private const float simulationTime = 1;
+    private Vector2 spellPosition = Vector2.right;
+    private Vector2 unitPosition = Vector2.zero;
+    private Vector2 unitMoveDirection = Vector2.left;
+
     [Test]
-    public void Character_Not_Moving_Only_Being_Sucked_In()
+    public void Test_Pull_With_Not_Moving_Character()
     {
-        var simulationTime = 1f;
-        var spell = GetSpell(Vector2.right, 1, 0.5f);
-        var unit = GetUnit(Vector2.zero, Vector2.left, 0);
-        var expectedUnitPosition = GetExpectedPosition(unit, spell, simulationTime);
+        var slowValue = 0.5f;
+        var pullValue = 1;
+        var moveSpeed = 0;
+        var spell = GetSpell(pullValue, slowValue);
+        var unit = GetUnit(moveSpeed);
+        var expectedUnitPosition = GetExpectedUnitPosition(pullValue, slowValue, moveSpeed);
 
         spell.Apply(unit);
         spell.Update(simulationTime);
@@ -27,12 +31,14 @@ public class TornadoSpellTest
     }
 
     [Test]
-    public void Character_Moving_And_Pulled()
+    public void Test_Slow_Without_Pulling()
     {
-        var simulationTime = 1f;
-        var spell = GetSpell(Vector2.right, 1, 0.5f);
-        var unit = GetUnit(Vector2.zero, Vector2.left, 1);
-        var expectedUnitPosition = GetExpectedPosition(unit, spell, simulationTime);
+        var slowValue = 0.3f;
+        var pullValue = 0;
+        var moveSpeed = 1;
+        var spell = GetSpell(pullValue, slowValue);
+        var unit = GetUnit(moveSpeed);
+        var expectedUnitPosition = GetExpectedUnitPosition(pullValue, slowValue, moveSpeed);
 
         spell.Apply(unit);
         spell.Update(simulationTime);
@@ -41,30 +47,50 @@ public class TornadoSpellTest
         Assert.AreEqual(expectedUnitPosition, unit.Position);
     }
 
-    // TODO: Re-check math in visuals
-    private Vector2 GetExpectedPosition(IUnit unit, TornadoSpell spell, float simulationTime)
+    [Test]
+    public void Test_Character_Affected_By_Both_Effects()
     {
-        var movePosition = unit.Position + unit.GetMoveDistance(simulationTime);
-        var pullDistance = spell.GetPullDistance(unit, simulationTime);
-        return movePosition - pullDistance;
+        var slowValue = 0.3f;
+        var pullValue = 1;
+        var moveSpeed = 1;
+        var spell = GetSpell(pullValue, slowValue);
+        var unit = GetUnit(moveSpeed);
+        var expectedUnitPosition = GetExpectedUnitPosition(pullValue, slowValue, moveSpeed);
+
+        spell.Apply(unit);
+        spell.Update(simulationTime);
+        unit.Update(simulationTime);
+
+        Assert.AreEqual(expectedUnitPosition, unit.Position);
     }
 
-    private TornadoSpell GetSpell(Vector2 position, float pullValue, float slowValue)
+    // This method exist only to help with mental calculations of expected unit position.
+    // Don't consider this as a math documentation of tornado spell.
+    private Vector2 GetExpectedUnitPosition(float pullValue, float slowValue, float moveSpeed)
+    {
+        var movePosition = unitPosition + moveSpeed * (1 - slowValue) * simulationTime * unitMoveDirection;
+        var pullDirection = unitPosition.GetDirectionTo(spellPosition);
+        var pullDelta = pullValue * simulationTime * pullDirection;
+
+        return movePosition + pullDelta;
+    }
+
+    private TornadoSpell GetSpell(float pullValue, float slowValue)
     {
         return new TornadoSpell
         {
-            Position = Vector2.right,
-            Values = new TornadoSpell.Settings { PullValue = 1f, SlowValue = 0.5f }
+            Position = spellPosition,
+            Values = new TornadoSpell.Settings { PullValue = pullValue, SlowValue = slowValue }
         };
     }
 
-    private IUnit GetUnit(Vector2 position, Vector2 moveDirection, float moveSpeed)
+    private IUnit GetUnit(float moveSpeed)
     {
         return new DummyUnit
         {
             MoveSpeed = moveSpeed,
-            Position = position,
-            MoveDirection = moveDirection
+            Position = unitPosition,
+            MoveDirection = unitMoveDirection
         };
     }
 }

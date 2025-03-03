@@ -18,6 +18,11 @@ public class TornadoSpell
     public void Apply(params IUnit[] units)
     {
         this.units = units;
+
+        foreach (var unit in units)
+        {
+            unit.MoveSpeed *= (1 - Values.SlowValue);
+        }
     }
 
     public void Update(float deltaTime)
@@ -31,6 +36,6 @@ public class TornadoSpell
     public Vector2 GetPullDistance(IUnit unit, float deltaTime)
     {
         var direction = unit.Position - Position;
-        return direction.normalized * deltaTime;
+        return deltaTime * Values.PullValue * direction.normalized;
     }
 }
