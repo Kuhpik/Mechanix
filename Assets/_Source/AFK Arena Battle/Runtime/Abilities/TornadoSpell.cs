@@ -23,13 +23,13 @@ public class TornadoSpell
     {
         foreach (var unit in units)
         {
-            unit.Position -= GetPullDistance(unit, deltaTime);
+            unit.Position += GetPullDistance(unit, deltaTime);
         }
     }
 
     private Vector2 GetPullDistance(IUnit unit, float deltaTime)
     {
-        var direction = unit.Position - Position;
-        return deltaTime * PullValue * direction.normalized;
+        var direction = unit.Position.GetDirectionToNormalized(Position);
+        return deltaTime * PullValue * direction;
     }
 }
