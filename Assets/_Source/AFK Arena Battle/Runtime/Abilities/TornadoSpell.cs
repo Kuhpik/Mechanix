@@ -3,15 +3,9 @@ using UnityEngine;
 
 public class TornadoSpell
 {
-    [Serializable]
-    public class Settings
-    {
-        public float SlowValue;
-        public float PullValue;
-    }
-
+    public float SlowValue { get; set; }
+    public float PullValue { get; set; }
     public Vector2 Position { get; set; }
-    public Settings Values  { get; set; }
 
     private IUnit[] units;
 
@@ -21,7 +15,7 @@ public class TornadoSpell
 
         foreach (var unit in units)
         {
-            unit.MoveSpeed *= (1 - Values.SlowValue);
+            unit.MoveSpeed *= (1 - SlowValue);
         }
     }
 
@@ -33,9 +27,9 @@ public class TornadoSpell
         }
     }
 
-    public Vector2 GetPullDistance(IUnit unit, float deltaTime)
+    private Vector2 GetPullDistance(IUnit unit, float deltaTime)
     {
         var direction = unit.Position - Position;
-        return deltaTime * Values.PullValue * direction.normalized;
+        return deltaTime * PullValue * direction.normalized;
     }
 }

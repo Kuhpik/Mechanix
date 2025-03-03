@@ -7,7 +7,6 @@ public interface IUnit
     Vector2 Position { get; set; }
     Vector2 MoveDirection { get; set; }
     void Update(float deltaTime);
-    Vector2 GetMoveDistance(float deltaTime);
 }
 
 // TODO: Separate with FSM
@@ -151,13 +150,13 @@ public class Unit : IUnit
         return false;
     }
 
-    public Vector2 GetMoveDistance(float deltaTime)
-    {
-        return MoveDirection * (MoveSpeed * deltaTime);
-    }
-
     protected void Move(float deltaTime)
     {
         Position += GetMoveDistance(deltaTime);
+    }
+
+    private Vector2 GetMoveDistance(float deltaTime)
+    {
+        return MoveDirection * (MoveSpeed * deltaTime);
     }
 }
