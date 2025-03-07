@@ -6,7 +6,10 @@ public interface IUnit
     float MoveSpeed { get; set; }
     Vector2 Position { get; set; }
     Vector2 MoveDirection { get; set; }
+    public EUnitState State { get; }
     void Update(float deltaTime);
+
+    public event Action OnUpdated;
 }
 
 // TODO: Separate with FSM
@@ -26,6 +29,8 @@ public class Unit : IUnit
     public Team Team { get; private set; }
     public bool IsDead => Health <= 0;
 
+    public event Action OnUpdated;
+
     /// <summary>
     /// Attacker, Damaged, Damage Amount
     /// </summary>
@@ -41,9 +46,16 @@ public class Unit : IUnit
         Damage = damage;
         Health = maxHealth;
         MaxHealth = maxHealth;
+        MoveSpeed = 1;
     }
 
     public virtual void Update(float deltaTime)
+    {
+        ChangeState(deltaTime);
+        OnUpdated?.Invoke();
+    }
+
+    private void ChangeState(float deltaTime)
     {
         if (IsDead)
         {
@@ -62,27 +74,58 @@ public class Unit : IUnit
             return;
         }
 
+        MoveDirection = (Target.Position - Position).normalized;
+
         if (IsPerformingAttack())
         {
             State = EUnitState.Attack;
             return;
         }
 
-        if (IsHaveAbilityToCast(out var abilityToCast))
+        CheckIfWeCanMoveOrCast(out bool shouldMove, out Ability abilityToCast);
+
+        if (abilityToCast != null)
         {
             abilityToCast.Cast(this);
             return;
         }
 
-        if (!IsTargetInRange())
+        if (shouldMove)
         {
-            MoveDirection = (Target.Position - Position).normalized;
             Move(deltaTime);
             State = EUnitState.Move;
             return;
         }
 
         State = EUnitState.Idle;
+    }
+
+    private void CheckIfWeCanMoveOrCast(out bool shouldMove, out Ability abilityToCast)
+    {
+        shouldMove = false;
+        abilityToCast = null;
+
+        foreach (var ability in abilities)
+        {
+            bool inRange = ability.IsTargetInRange(Position, Target.Position);
+
+            if (inRange && ability.CanCast)
+            {
+                abilityToCast = ability;
+                break;
+            }
+
+            if (!inRange)
+            {
+                shouldMove = true;
+            }
+        }
+    }
+
+    public void Stop()
+    {
+        State = EUnitState.Idle;
+        OnUpdated?.Invoke();
     }
 
     public void SetTarget(Unit target)
@@ -106,45 +149,12 @@ public class Unit : IUnit
         Health = Mathf.Clamp(Health - damage, 0, MaxHealth);
     }
 
-    private bool IsTargetInRange()
-    {
-        var distance = Vector2.Distance(Target.Position, Position);
-        // TODO: Optimize with Melee \ Range definitions of ability range.
-        // For ex. if every spell is ranged we no longer have to perform this check.
-
-        foreach (var ability in abilities)
-        {
-            if (distance > ability.Range)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     private bool IsPerformingAttack()
     {
         foreach (var ability in abilities)
         {
             if (ability.IsCasting)
                 return true;
-        }
-
-        return false;
-    }
-
-    private bool IsHaveAbilityToCast(out Ability abilityToCast)
-    {
-        abilityToCast = null;
-
-        foreach (var ability in abilities)
-        {
-            if (ability.CanCast)
-            {
-                abilityToCast = ability;
-                return true;
-            }
         }
 
         return false;

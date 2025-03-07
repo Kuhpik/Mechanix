@@ -1,7 +1,7 @@
 public class MeleeAttack : Ability
 {
     public override bool IsAvailableAtTheStart => true;
-    public override float CastTime => 0.1f;
+    public override float CastTime => 0.25f;
     public override float Cooldown => 1;
     public override float Range => 1;
 

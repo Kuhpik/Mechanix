@@ -10,7 +10,7 @@ public class BattleSystem : MonoBehaviour
     public event Action OnBattleOver;
 
     private BattleLogger battleLogger;
-    private  Unit[] units;
+    private Unit[] units;
 
     private void Start()
     {
@@ -28,6 +28,13 @@ public class BattleSystem : MonoBehaviour
         {
             Debug.Log("Battle over!");
             enabled = false;
+
+            foreach (var unit in units)
+            {
+                TrySetNewTarget(unit);
+                unit.Stop();
+            }
+
             return;
         }
 

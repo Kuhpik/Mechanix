@@ -1,4 +1,6 @@
 // TODO: Move settings to different class like Scriptable Object.
+using UnityEngine;
+
 public abstract class Ability
 {
     /// <summary>
@@ -8,7 +10,6 @@ public abstract class Ability
     public abstract float CastTime { get; }
     public abstract float Cooldown { get; }
     public abstract float Range { get; }
-    // ^ Bad for testing omg
 
     public bool CanCast => cooldownTimer <= 0;
     public bool IsCasting { get; private set; }
@@ -33,6 +34,11 @@ public abstract class Ability
         IsCasting = true;
         CastInternal(caster);
         ResetTimers();
+    }
+
+    public bool IsTargetInRange(Vector2 caster, Vector2 target)
+    {
+        return Vector2.Distance(caster, target) <= Range;
     }
 
     protected abstract void CastInternal(Unit caster);
