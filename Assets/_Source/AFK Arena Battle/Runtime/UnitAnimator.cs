@@ -9,6 +9,8 @@ public class UnitAnimator : MonoBehaviour
     [SerializeField, AnimatorParam(nameof(animator))] private string walkTrigger;
     [SerializeField, AnimatorParam(nameof(animator))] private string attackTrigger;
     [SerializeField, AnimatorParam(nameof(animator))] private string deadTrigger;
+    [SerializeField, AnimatorParam(nameof(animator))] private string castTrigger;
+    [SerializeField, AnimatorParam(nameof(animator))] private string victoryTrigger;
 
     public void Animate(EUnitState state)
     {
@@ -21,7 +23,9 @@ public class UnitAnimator : MonoBehaviour
         EUnitState.Idle => idleTrigger,
         EUnitState.Move => walkTrigger,
         EUnitState.Attack => attackTrigger,
+        EUnitState.Cast => castTrigger,
         EUnitState.Dead => deadTrigger,
+        EUnitState.Victory => victoryTrigger,
         _ => "",
     };
 

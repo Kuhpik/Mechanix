@@ -6,10 +6,12 @@ public interface IUnit
     float MoveSpeed { get; set; }
     Vector2 Position { get; set; }
     Vector2 MoveDirection { get; set; }
-    public EUnitState State { get; }
+    EUnitState State { get; }
+    Ability AbilityCasted { get; }
+   
     void Update(float deltaTime);
 
-    public event Action OnUpdated;
+    event Action OnUpdated;
 }
 
 // TODO: Separate with FSM
@@ -23,6 +25,7 @@ public class Unit : IUnit
     public Vector2 Position { get; set; }
     public Vector2 MoveDirection { get; set; }
 
+    public Ability AbilityCasted { get; private set; }
     public EUnitState State { get; private set; }
     public Unit Target { get; private set; }
     public int Health { get; private set; }
