@@ -24,6 +24,8 @@ public class BattleSystem : MonoBehaviour
 
     private void Update()
     {
+        var deltaTime = Time.deltaTime;
+
         if (IsBattleOver())
         {
             Debug.Log("Battle over!");
@@ -32,13 +34,15 @@ public class BattleSystem : MonoBehaviour
             foreach (var unit in units)
             {
                 TrySetNewTarget(unit);
-                unit.Stop();
+
+                if (unit.Health > 0)
+                    unit.Victory();
+
+                unit.Update(deltaTime);
             }
 
             return;
         }
-
-        var deltaTime = Time.deltaTime;
 
         foreach (var unit in units)
         {
@@ -49,6 +53,12 @@ public class BattleSystem : MonoBehaviour
 
     private void TrySetNewTarget(Unit unit)
     {
+        if (unit == null)
+        {
+            unit.SetTarget(null);
+            return;
+        }
+
         if (unit.Target != null)
             return;
 

@@ -12,10 +12,22 @@ public class UnitAnimator : MonoBehaviour
     [SerializeField, AnimatorParam(nameof(animator))] private string castTrigger;
     [SerializeField, AnimatorParam(nameof(animator))] private string victoryTrigger;
 
+    private string[] allTriggers;
+
+    private void Awake()
+    {
+        allTriggers = new string[] { idleTrigger, walkTrigger, attackTrigger, deadTrigger, castTrigger, victoryTrigger };
+    }
+
     public void Animate(EUnitState state)
     {
-        var param = GetAnimatorParam(state);
-        animator.SetTrigger(param);
+        var activeTrigger = GetAnimatorParam(state);
+
+        foreach (var trigger in allTriggers)
+        {
+            if (trigger == activeTrigger) animator.SetTrigger(activeTrigger);
+            else animator.ResetTrigger(trigger);
+        }
     }
 
     private string GetAnimatorParam(EUnitState state) => state switch

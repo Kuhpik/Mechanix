@@ -1,37 +1,40 @@
-// TODO: Move settings to different class like Scriptable Object.
 using UnityEngine;
 
 public abstract class Ability
 {
-    /// <summary>
-    /// Shows whether skill can be used right after battle begins.
-    /// </summary>
-    public abstract bool IsAvailableAtTheStart { get; }
-    public abstract float CastTime { get; }
-    public abstract float Cooldown { get; }
-    public abstract float Range { get; }
+    public bool IsAvailableAtTheStart { get; set; }
+    public float CastTime { get; set; }
+    public float Cooldown { get; set; }
+    public float Range { get; set; }
 
-    public bool CanCast => cooldownTimer <= 0;
-    public bool IsCasting { get; private set; }
+    public float CurrentCooldown { get; private set; }
+    public float CurrentCastTime { get; private set; }
+    public bool CanCast => CurrentCooldown <= 0;
+    public bool IsCasting => CurrentCastTime > 0;
 
-    protected float cooldownTimer;
-    protected float castTimer;
-
-    protected Ability()
+    protected Ability(float castTime, float cooldown, bool isAvailableAtTheStart)
     {
-        cooldownTimer = IsAvailableAtTheStart ? 0 : Cooldown;
+        CastTime = castTime;
+        Cooldown = cooldown;
+        IsAvailableAtTheStart = isAvailableAtTheStart;
+
+        CurrentCooldown = IsAvailableAtTheStart ? 0 : Cooldown;
     }
 
     public void Update(float deltaTime)
     {
-        cooldownTimer -= deltaTime;
+        CurrentCooldown -= deltaTime;
         HandleCastTimer(deltaTime);
         UpdateInternal(deltaTime);
     }
 
-    public void Cast(Unit caster)
+    public void Cast(IUnit caster)
     {
-        IsCasting = true;
+        if (!CanCast)
+        {
+            return;
+        }
+
         CastInternal(caster);
         ResetTimers();
     }
@@ -41,7 +44,7 @@ public abstract class Ability
         return Vector2.Distance(caster, target) <= Range;
     }
 
-    protected abstract void CastInternal(Unit caster);
+    protected abstract void CastInternal(IUnit caster);
 
     /// <summary>
     /// For cases such as projectile fly animation
@@ -56,15 +59,12 @@ public abstract class Ability
         if (!IsCasting)
             return;
 
-        castTimer -= deltaTime;
-
-        if (castTimer <= 0)
-            IsCasting = false;
+        CurrentCastTime -= deltaTime;
     }
 
     private void ResetTimers()
     {
-        cooldownTimer = Cooldown;
-        castTimer = CastTime;
+        CurrentCooldown = Cooldown;
+        CurrentCastTime = CastTime;
     }
 }

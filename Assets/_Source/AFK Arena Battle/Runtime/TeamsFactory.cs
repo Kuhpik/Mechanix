@@ -6,7 +6,7 @@ public class TeamsFactory : MonoBehaviour
     
     public Team CreateTeam1()
     {
-        var mage = new Unit("Mage", 10, 200, new RangeAttack());
+        var mage = new Unit("Mage", 10, 200/*, new RangeAttack()*/);
         mage.Position = Vector2.left * 5;
 
         var view = Instantiate(GetView("Mage"));
@@ -17,7 +17,7 @@ public class TeamsFactory : MonoBehaviour
 
     public Team CreateTeam2()
     {
-        var fighter = new Unit("Fighter", 20, 100, new MeleeAttack());
+        var fighter = new Unit("Fighter", 20, 100/*, new MeleeAttack()*/);
         fighter.Position = Vector2.right * 5;
 
         var view = Instantiate(GetView("Fighter"));

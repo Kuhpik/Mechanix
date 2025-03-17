@@ -1,66 +1,136 @@
-//using NUnit.Framework;
+using Moq;
+using UnityEngine;
+using NUnit.Framework;
 
-//public class SpellsTest
-//{
-//    private class CommonSpell : Ability
-//    {
-//        public override bool IsAvailableAtTheStart => false;
-//        public CommonSpell(float cooldown) : base(cooldown) { }
-//        protected override void UseInternal() { }
-//    }
+public class AbilityTests
+{
+    [Test]
+    public void Ability_On_Cooldown_When_Battle_Started()
+    {
+        var ability = new TestAbility(castTime: 0, cooldown: 10, isAvailableAtTheStart: false);
 
-//    private class AvailableAtStartSpell : Ability
-//    {
-//        public override bool IsAvailableAtTheStart => true;
-//        public AvailableAtStartSpell(float cooldown) : base(cooldown) { }
-//        protected override void UseInternal() { }
-//    }
+        Assert.False(ability.CanCast);
+    }
 
-//    private Ability availableAtStartSpell;
-//    private Ability commonSpell;
+    [Test]
+    public void Ability_Ready_When_Battle_Started_If_Marked_As_Available()
+    {
+        var ability = new TestAbility(castTime: 0, cooldown: 10, isAvailableAtTheStart: true);
 
-//    private const float cooldown = 3;
+        Assert.True(ability.CanCast);
+    }
 
-//    [SetUp]
-//    public void Setup()
-//    {
-//        availableAtStartSpell = new AvailableAtStartSpell(cooldown);
-//        commonSpell = new CommonSpell(cooldown);
-//    }
+    [Test]
+    public void Ability_On_Cooldown_If_Not_Enough_Time_Passed()
+    {
+        var ability = new TestAbility(castTime: 0, cooldown: 10, isAvailableAtTheStart: false);
 
-//    [Test]
-//    public void Common_Spell_Not_Ready_When_Created()
-//    {
-//        var spell = commonSpell;
+        ability.Update(9.9f);
 
-//        Assert.IsFalse(spell.CanCast);
-//    }
+        Assert.False(ability.CanCast);
+    }
 
-//    [Test]
-//    public void Common_Spell_Ready_After_Timespan()
-//    {
-//        var spell = commonSpell;
+    [Test]
+    public void Ability_Ready_After_Time_Passed()
+    {
+        var ability = new TestAbility(castTime: 0, cooldown: 10, isAvailableAtTheStart: false);
 
-//        spell.Update(cooldown);
+        ability.Update(10);
 
-//        Assert.IsTrue(spell.CanCast);
-//    }
+        Assert.True(ability.CanCast);
+    }
 
-//    [Test]
-//    public void Instant_Spell_Ready_When_Created()
-//    {
-//        var spell = availableAtStartSpell;
+    [Test]
+    public void Ability_Is_Not_Casting_When_On_Cooldown()
+    {
+        var ability = new TestAbility(castTime: 0, cooldown: 10, isAvailableAtTheStart: false);
+        var unitMock = new Mock<IUnit>();
+        var unit = unitMock.Object;
 
-//        Assert.IsTrue(spell.CanCast);
-//    }
+        ability.Cast(unit);
 
-//    [Test]
-//    public void Spell_On_Cooldown_After_Use()
-//    {
-//        var spell = availableAtStartSpell;
+        Assert.False(ability.IsCasting);
+    }
 
-//        spell.Use();
+    [Test]
+    public void Ability_Casting_When_Ready()
+    {
+        var ability = new TestAbility(castTime: 1, cooldown: 10, isAvailableAtTheStart: true);
+        var unitMock = new Mock<IUnit>();
+        var unit = unitMock.Object;
 
-//        Assert.IsFalse(spell.CanCast);
-//    }
-//}
+        ability.Cast(unit);
+
+        Assert.True(ability.IsCasting);
+    }
+
+    [Test]
+    public void Ability_Still_Casting_If_Not_Enough_Time_Passed()
+    {
+        var ability = new TestAbility(castTime: 1, cooldown: 10, isAvailableAtTheStart: true);
+        var unitMock = new Mock<IUnit>();
+        var unit = unitMock.Object;
+
+        ability.Cast(unit);
+        ability.Update(0.99f);
+
+        Assert.True(ability.IsCasting);
+    }
+
+    [Test]
+    public void Ability_Cast_Over_If_Cast_Time_Passed()
+    {
+        var ability = new TestAbility(castTime: 1, cooldown: 10, isAvailableAtTheStart: true);
+        var unitMock = new Mock<IUnit>();
+        var unit = unitMock.Object;
+
+        ability.Cast(unit);
+        ability.Update(1);
+
+        Assert.False(ability.IsCasting);
+    }
+
+    [Test]
+    public void Ability_Cooldown_Reduces_While_Casting()
+    {
+        var ability = new TestAbility(castTime: 5, cooldown: 10, isAvailableAtTheStart: true);
+        var unitMock = new Mock<IUnit>();
+        var unit = unitMock.Object;
+
+        ability.Cast(unit);
+        ability.Update(5);
+
+        Assert.AreEqual(5, ability.CurrentCooldown);
+    }
+
+    [Test]
+    public void Ability_Cast_Timer_Reduces_While_Casting()
+    {
+        var ability = new TestAbility(castTime: 5, cooldown: 10, isAvailableAtTheStart: true);
+        var unitMock = new Mock<IUnit>();
+        var unit = unitMock.Object;
+
+        ability.Cast(unit);
+        ability.Update(4);
+
+        Assert.AreEqual(1, ability.CurrentCastTime);
+    }
+
+    [Test]
+    public void Target_In_Range()
+    {
+        var ability = new TestAbility(castTime: 5, cooldown: 10, isAvailableAtTheStart: true) { Range = 10 };
+        var isInRange = ability.IsTargetInRange(new Vector2(0, 0), new Vector2(10, 0));
+
+        Assert.True(isInRange);
+    }
+
+    [Test]
+    public void Target_Out_Of_Range()
+    {
+        var ability = new TestAbility(castTime: 5, cooldown: 10, isAvailableAtTheStart: true) { Range = 10 };
+        var isInRange = ability.IsTargetInRange(new Vector2(0, 0), new Vector2(11, 0));
+
+        Assert.False(isInRange);
+    }
+}

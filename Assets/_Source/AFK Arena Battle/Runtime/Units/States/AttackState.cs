@@ -1,32 +1,36 @@
-﻿using UnityEngine;
-
-public class AttackState : MonoBehaviour
+﻿public class AttackState : IState
 {
     private IUnit unit;
-    private Animator animator;
+    private Ability ability;
+    private StateMachine fsm;
     private float animationTime;
     private float animationTimePassed;
 
-    public void OnEnter()
+    public AttackState(IUnit unit, StateMachine fsm, Ability ability)
     {
-        animationTimePassed = 0;
-
-        var animationTime = unit.AbilityCasted.CastTime;
-        var animatorState = animator.GetCurrentAnimatorStateInfo(0);
+        this.unit = unit;
+        this.fsm = fsm;
+        this.ability = ability;
     }
 
-    public void Run(float deltaTime)
+    public void Enter()
+    {
+        animationTimePassed = 0;
+        var animationTime = unit.AbilityCasted.CastTime;
+    }
+
+    public void Exit()
+    {
+        fsm.ChangeState(EUnitState.Idle);
+    }
+
+    public void Update(float deltaTime)
     {
         if (animationTimePassed >= animationTime)
         {
-            //ExitState();
+            Exit();
         }
 
         animationTimePassed += deltaTime;
-    }
-
-    public void OnExit()
-    { 
-    
     }
 }

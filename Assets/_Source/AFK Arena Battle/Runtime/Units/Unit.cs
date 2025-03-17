@@ -125,9 +125,9 @@ public class Unit : IUnit
         }
     }
 
-    public void Stop()
+    public void Victory()
     {
-        State = EUnitState.Idle;
+        State = EUnitState.Victory;
         OnUpdated?.Invoke();
     }
 
@@ -150,6 +150,12 @@ public class Unit : IUnit
     {
         OnDamaged?.Invoke(attacker, this, damage);
         Health = Mathf.Clamp(Health - damage, 0, MaxHealth);
+
+        if (Health == 0)
+        {
+            State = State = EUnitState.Dead;
+            OnUpdated?.Invoke();
+        }
     }
 
     private bool IsPerformingAttack()
