@@ -66,5 +66,32 @@ public class UnitStateTests
         unit.Update(1.5f);
         Assert.AreEqual(EUnitState.Attack, unit.State);
     }
+
+    [Test]
+    public void Unit_Is_Idle_When_Ability_On_Cooldown()
+    {
+        var ability = new TestAbility(2, 10, false) { Range = 2 };
+        var unit = new Unit("Dummy", 10, 100, ability);
+        var target = new Unit("Target", 10, 100) { Position = new Vector2(2, 0) };
+
+        unit.SetTarget(target);
+
+        unit.Update(0.1f);
+        Assert.AreEqual(EUnitState.Idle, unit.State);
+    }
+
+    [Test]
+    public void Unit_Is_Idle_After_Ability_Cast()
+    {
+        var ability = new TestAbility(2, 10, true) { Range = 2 };
+        var unit = new Unit("Dummy", 10, 100, ability);
+        var target = new Unit("Target", 10, 100) { Position = new Vector2(2, 0) };
+
+        unit.SetTarget(target);
+
+        unit.Update(0.1f);
+        unit.Update(2);
+        Assert.AreEqual(EUnitState.Idle, unit.State);
+    }
 }
 

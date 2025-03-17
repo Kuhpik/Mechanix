@@ -77,13 +77,13 @@ public class Unit : IUnit
             return;
         }
 
-        MoveDirection = (Target.Position - Position).normalized;
-
         if (IsPerformingAttack())
         {
             State = EUnitState.Attack;
             return;
         }
+
+        MoveDirection = (Target.Position - Position).normalized;
 
         CheckIfWeCanMoveOrCast(out bool shouldMove, out Ability abilityToCast);
 
@@ -91,6 +91,7 @@ public class Unit : IUnit
         {
             AbilityCasted = abilityToCast;
             abilityToCast.Cast(this);
+            State = EUnitState.Attack;
             return;
         }
 
