@@ -89,6 +89,7 @@ public class Unit : IUnit
 
         if (abilityToCast != null)
         {
+            AbilityCasted = abilityToCast;
             abilityToCast.Cast(this);
             return;
         }
