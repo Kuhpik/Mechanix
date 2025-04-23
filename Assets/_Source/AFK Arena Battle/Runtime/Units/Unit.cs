@@ -143,11 +143,6 @@ public class Unit : IUnit
         Team = team;
     }
 
-    public void ApplyHeal(int heal)
-    {
-        Health = Mathf.Clamp(Health + heal, 0, MaxHealth);
-    }
-
     public void ApplyDamage(Unit attacker, int damage)
     {
         OnDamaged?.Invoke(attacker, this, damage);
