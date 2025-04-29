@@ -2,13 +2,22 @@ using System;
 using UnityEngine;
 
 public interface IUnit
-{ 
+{
+    string Name { get; }
+
+    int Damage { get; }
+    int Health { get; }
+    int MaxHealth { get; }
+
+    Team Team { get; }
+    Unit Target { get; }
+    EUnitState State { get; }
+    Ability AbilityCasted { get; }
+
     float MoveSpeed { get; set; }
     Vector2 Position { get; set; }
     Vector2 MoveDirection { get; set; }
-    EUnitState State { get; }
-    Ability AbilityCasted { get; }
-   
+
     void Update(float deltaTime);
 
     event Action OnUpdated;
@@ -17,9 +26,9 @@ public interface IUnit
 // TODO: Separate with FSM
 public class Unit : IUnit
 {
-    public readonly int MaxHealth;
-    public readonly int Damage;
-    public readonly string Name;
+    public int MaxHealth { get; private set; }
+    public int Damage { get; private set; }
+    public string Name { get; private set; }
 
     public float MoveSpeed { get; set; }
     public Vector2 Position { get; set; }
@@ -37,7 +46,7 @@ public class Unit : IUnit
     /// <summary>
     /// Attacker, Damaged, Damage Amount
     /// </summary>
-    public event Action<Unit, Unit, int> OnDamaged;
+    public event Action<IUnit, IUnit, int> OnDamaged;
 
     private readonly Ability[] abilities;
 
@@ -143,7 +152,7 @@ public class Unit : IUnit
         Team = team;
     }
 
-    public void ApplyDamage(Unit attacker, int damage)
+    public void ApplyDamage(IUnit attacker, int damage)
     {
         OnDamaged?.Invoke(attacker, this, damage);
         Health = Mathf.Clamp(Health - damage, 0, MaxHealth);

@@ -2,7 +2,6 @@ using UnityEngine;
 
 public abstract class Ability
 {
-    public bool IsAvailableAtTheStart { get; set; }
     public float CastTime { get; set; }
     public float Cooldown { get; set; }
     public float Range { get; set; }
@@ -16,9 +15,7 @@ public abstract class Ability
     {
         CastTime = castTime;
         Cooldown = cooldown;
-        IsAvailableAtTheStart = isAvailableAtTheStart;
-
-        CurrentCooldown = IsAvailableAtTheStart ? 0 : Cooldown;
+        CurrentCooldown = isAvailableAtTheStart ? 0 : Cooldown;
     }
 
     public void Update(float deltaTime)
