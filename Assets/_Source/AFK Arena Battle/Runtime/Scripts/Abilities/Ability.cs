@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public abstract class Ability
@@ -10,6 +11,9 @@ public abstract class Ability
     public float CurrentCastTime { get; private set; }
     public bool CanCast => CurrentCooldown <= 0;
     public bool IsCasting => CurrentCastTime > 0;
+
+    public event Action<IUnit> OnCastStarted;
+    public event Action OnCastEnded;
 
     protected Ability(float castTime, float cooldown, bool isAvailableAtTheStart)
     {
@@ -34,6 +38,7 @@ public abstract class Ability
 
         CastInternal(caster);
         ResetTimers();
+        OnCastStarted?.Invoke(caster);
     }
 
     public bool IsTargetInRange(Vector2 caster, Vector2 target)
@@ -54,7 +59,10 @@ public abstract class Ability
     private void HandleCastTimer(float deltaTime)
     {
         if (!IsCasting)
+        {
+            OnCastEnded?.Invoke();
             return;
+        }
 
         CurrentCastTime -= deltaTime;
     }
