@@ -19,7 +19,7 @@ public class TeamsFactory : MonoBehaviour
     public Team CreateTeam2()
     {
         var ability1 = new MeleeAttack(0.5f, 3f, false);
-        var ability2 = new Heal(1f, 10f, false);
+        var ability2 = new Heal(3f, 10f, false);
         var fighter = new Unit("Fighter", 20, 500, ability1, ability2);
         var view = Instantiate(GetView("Fighter"));
 

@@ -74,12 +74,6 @@ public class Unit : IUnit
             return;
         }
 
-        if (IsDead)
-        {
-            SetState(EUnitState.Dead);
-            return;
-        }
-
         foreach (var ability in abilities)
         {
             ability.Update(deltaTime);
@@ -91,23 +85,7 @@ public class Unit : IUnit
             return;
         }
 
-        if (IsPerformingAttack(out var abilityIndex))
-        {
-            SetState(abilityIndex == 0 ? EUnitState.Attack : EUnitState.Cast);
-            return;
-        }
-
         MoveDirection = (Target.Position - Position).normalized;
-
-        CheckIfWeCanMoveOrCast(out bool shouldMove, out Ability abilityToCast);
-
-        if (abilityToCast != null)
-        {
-            AbilityCasted = abilityToCast;
-            abilityToCast.Cast(this);
-            SetState(EUnitState.Attack);
-            return;
-        }
 
         if (AbilityCasted != null && AbilityCasted.IsCasting)
         {
@@ -117,6 +95,16 @@ public class Unit : IUnit
         else
         {
             AbilityCasted = null;
+        }
+
+        CheckIfWeCanMoveOrCast(out bool shouldMove, out Ability abilityToCast, out int abilityIndex);
+
+        if (abilityToCast != null)
+        {
+            AbilityCasted = abilityToCast;
+            abilityToCast.Cast(this);
+            SetState(abilityIndex == 1 ? EUnitState.Attack : EUnitState.Cast);
+            return;
         }
 
         if (shouldMove)
@@ -129,13 +117,15 @@ public class Unit : IUnit
         SetState(EUnitState.Idle);
     }
 
-    private void CheckIfWeCanMoveOrCast(out bool shouldMove, out Ability abilityToCast)
+    private void CheckIfWeCanMoveOrCast(out bool shouldMove, out Ability abilityToCast, out int abilityIndex)
     {
         shouldMove = false;
         abilityToCast = null;
 
+        abilityIndex = 0;
         foreach (var ability in abilities)
         {
+            abilityIndex++;
             bool inRange = ability.IsTargetInRange(Position, Target.Position);
 
             if (inRange && ability.CanCast)
@@ -171,22 +161,9 @@ public class Unit : IUnit
     {
         Health = Mathf.Clamp(Health - damage, 0, MaxHealth);
         OnDamaged?.Invoke(attacker, this, damage);
-    }
 
-    private bool IsPerformingAttack(out int abilityIndex)
-    {
-        abilityIndex = 0;
-
-        for (int i = 0; i < abilities.Length; i++)
-        {
-            if (abilities[i].IsCasting)
-            {
-                abilityIndex = i;
-                return true;
-            }
-        }
-
-        return false;
+        if (IsDead)
+            SetState(EUnitState.Dead);
     }
 
     protected void Move(float deltaTime)
@@ -201,7 +178,6 @@ public class Unit : IUnit
 
     private void SetState(EUnitState nextState)
     {
-        Debug.Log($"New state for Unit : {Name} is {nextState}");
         State = nextState;
     }
 }

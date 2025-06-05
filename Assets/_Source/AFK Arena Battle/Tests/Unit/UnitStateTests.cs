@@ -93,5 +93,22 @@ public class UnitStateTests
         unit.Update(2);
         Assert.AreEqual(EUnitState.Idle, unit.State);
     }
+
+    [Test]
+    public void Ability_Cast_Doesnt_Interrupted()
+    {
+        var attackAbility = new TestAbility(2, 10, false) { Range = float.MaxValue };
+        var ultimateAbility = new TestAbility(2, 10, true) { Range = float.MaxValue };
+        var unit = new Unit("Dummy", 10, 100, attackAbility, ultimateAbility);
+        var target = new Unit("Target", 10, 100) { Position = new Vector2(2, 0) };
+
+        unit.SetTarget(target);
+
+        unit.Update(0.1f);
+        Assert.AreEqual(EUnitState.Cast, unit.State);
+
+        unit.Update(0.5f);
+        Assert.AreEqual(EUnitState.Cast, unit.State);
+    }
 }
 
